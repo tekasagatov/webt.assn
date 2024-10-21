@@ -1,38 +1,68 @@
+//event handling
 document.getElementById("submit").addEventListener("click", calculateDowry);
 
+//object to store
+const educationLevels = {
+    bachelor: 1.5,
+    college: 1.2,
+    high_school: 1.05,
+    middle_school: 0.9,
+};
+
+//array to store
+const netWorthOptions = [
+    { value: "upper_class", coefficient: 2 },
+    { value: "middle_class", coefficient: 1.5 },
+    { value: "lower_class", coefficient: 1.2 }
+];
+
+//object to store
+const casteBonuses = {
+    brahmin: 100,
+    kshatriya: 50,
+    vaishya: 20,
+    shudra: 10,
+    untouchable: -50
+};
+
+//calculation
 function calculateDowry() {
+    //reset previous result
+    const existingResult = document.getElementById("result");
+    if (existingResult) {
+        existingResult.remove();
+    }
+
+    //base price
     let basePrice = 100;
 
     //education coef.
     const education = document.getElementById("education").value;
-    let educationCoefficient = 1;
-    if (education === "bachelor") educationCoefficient = 1.5;
-    else if (education === "college") educationCoefficient = 1.2;
-    else if (education === "high_school") educationCoefficient = 1.05;
-    else if (education === "middle_school") educationCoefficient = 0.9;
+    let educationCoefficient = educationLevels[education] || 1;
 
     //networth coef.
     const networth = document.getElementById("networth").value;
     let networthCoefficient = 1;
-    if (networth === "upper_class") networthCoefficient = 2;
-    else if (networth === "middle_class") networthCoefficient = 1.5;
-    else if (networth === "lower_class") networthCoefficient = 1.2;
+    netWorthOptions.forEach(option => {
+        if (option.value === networth) {
+            networthCoefficient = option.coefficient;
+        }
+    });
 
     //caste bonus
     const caste = document.getElementById("caste").value;
-    let casteBonus = 0;
-    if (caste === "brahmin") casteBonus = 100;
-    else if (caste === "kshatriya") casteBonus = 50;
-    else if (caste === "vaishya") casteBonus = 20;
-    else if (caste === "shudra") casteBonus = 10;
-    else if (caste === "untouchable") casteBonus = -50;
+    let casteBonus = casteBonuses[caste] || 0;
 
     //skills bonus
-    let skillsBonus = 0;
-    if (document.getElementById("music").checked) skillsBonus += 10;
-    if (document.getElementById("cook").checked) skillsBonus += 20;
-    if (document.getElementById("easygoing").checked) skillsBonus += 15;
-    if (document.getElementById("sings").checked) skillsBonus += 10;
+    const skills = [
+        { id: "music", bonus: 10 },
+        { id: "cook", bonus: 20 },
+        { id: "easygoing", bonus: 15 },
+        { id: "sings", bonus: 10 }
+    ];
+    let skillsBonus = skills.reduce((total, skill) => {
+        return total + (document.getElementById(skill.id).checked ? skill.bonus : 0);
+    }, 0);
 
     //age coef.
     let ageCoefficient = 1;
@@ -53,6 +83,9 @@ function calculateDowry() {
 
     //display
     const resultElement = document.createElement("p");
+    resultElement.id = "result";
     resultElement.textContent = `The final dowry price is $${finalPrice.toFixed(2)}`;
+
+    //append result to container
     document.querySelector(".container").appendChild(resultElement);
 }
