@@ -90,7 +90,12 @@ const calculate = () => {
         if (reputationSelect[i].checked) {
             const selectedReputation = reputationSelect[i].value;
             const reputationValue = config.reputation[selectedReputation];
-            price = reputationValue < 1 ? price * reputationValue : price + reputationValue;
+
+            if (reputationValue > 0 && reputationValue < 1) {
+                price *= reputationValue;
+            } else {
+                price += reputationValue;
+            }
         }
     }
     //loveletter
