@@ -1,58 +1,108 @@
-document.getElementById("submit").addEventListener("click", calculateDowry);
+//all coef.
+const config = {
+    education: {
+        undergraduate: 1.5,
+        college: 1.2,
+        high_school: 1.05,
+        middle_school: 0.9
+    },
+    networth: {
+        upper_class: 2,
+        middle_class: 1.5,
+        lower_class: 1.2
+    },
+    caste: {
+        brahmin: 100,
+        kshatriya: 50,
+        vaishya: 20,
+        shudra: 10,
+        untouchable: -50
+    },
+    skills: {
+        music: 10,
+        cook: 20,
+        easygoing: 15,
+        sings: 10
+    },
+    age: {
+        age_18_23: 1.5,
+        age_24_27: 1.2,
+        age_28_plus: 0.95
+    },
+    reputation: {
+        gossips_parents: 0.85,
+        gossips_character: 0.9,
+        general_gossips: -20
+    }
+};
 
-function calculateDowry() {
-    let basePrice = 100;
+//save elements
+const nameInput = document.getElementById("name");
+const startBidInput = document.getElementById("starting_bid");
+const educationSelect = document.getElementById("education");
+const networthSelect = document.getElementById("networth");
+const casteSelect = document.getElementById("caste");
+const skillsSelect = document.querySelectorAll(".skills");
+const ageSelect = document.getElementsByName("age");
+const reputationSelect = document.querySelectorAll(".reputation");
+const loveLetterInput = document.getElementById("love_letter");
+const submitButton = document.getElementById("submit");
+const resultDiv = document.getElementById("result");
 
-    // Education coefficient
-    const education = document.getElementById("education").value;
-    let educationCoefficient = 1;
-    if (education === "bachelor") educationCoefficient = 1.5;
-    else if (education === "college") educationCoefficient = 1.2;
-    else if (education === "high_school") educationCoefficient = 1.05;
-    else if (education === "middle_school") educationCoefficient = 0.9;
+//eventlistener button
+submitButton.addEventListener("click", () => calculate());
 
-    // Family net worth coefficient
-    const networth = document.getElementById("networth").value;
-    let networthCoefficient = 1;
-    if (networth === "upper_class") networthCoefficient = 2;
-    else if (networth === "middle_class") networthCoefficient = 1.5;
-    else if (networth === "lower_class") networthCoefficient = 1.2;
+//calculation
+const calculate = () => {
+    let name = nameInput.value;
+    let price = parseFloat(startBidInput.value);
 
-    // Caste bonus
-    const caste = document.getElementById("caste").value;
-    let casteBonus = 0;
-    if (caste === "brahmin") casteBonus = 100;
-    else if (caste === "kshatriya") casteBonus = 50;
-    else if (caste === "vaishya") casteBonus = 20;
-    else if (caste === "shudra") casteBonus = 10;
-    else if (caste === "untouchable") casteBonus = -50;
+    switch (true) {
+        case (!name || isNaN(price)):
+            alert("Please fill in.");
+            return;
+        default:
+            break;
+    }    
 
-    // Skills bonus
-    let skillsBonus = 0;
-    if (document.getElementById("music").checked) skillsBonus += 10;
-    if (document.getElementById("cook").checked) skillsBonus += 20;
-    if (document.getElementById("easygoing").checked) skillsBonus += 15;
-    if (document.getElementById("sings").checked) skillsBonus += 10;
-
-    // Age coefficient
-    let ageCoefficient = 1;
-    const age = document.querySelector('input[name="age"]:checked')?.value;
-    if (age === "18-23") ageCoefficient = 1.5;
-    else if (age === "24-27") ageCoefficient = 1.2;
-    else if (age === "28+") ageCoefficient = 0.95;
-
-    // Reputation coefficient
-    let reputationCoefficient = 1;
-    if (document.getElementById("gossips_parents").checked) reputationCoefficient *= 0.85;
-    if (document.getElementById("gossips_character").checked) reputationCoefficient *= 0.9;
-    if (document.getElementById("general_gossips").checked) basePrice -= 20;
-
-    // Calculate final price
-    let finalPrice = basePrice * educationCoefficient * networthCoefficient * ageCoefficient * reputationCoefficient;
-    finalPrice += casteBonus + skillsBonus;
-
-    // Display the final price
-    const resultElement = document.createElement("p");
-    resultElement.textContent = `The final dowry price is $${finalPrice.toFixed(2)}`;
-    document.querySelector(".container").appendChild(resultElement);
-}
+    //education
+    const selectedEducationLevel = educationSelect.value;
+    price *= config.education[selectedEducationLevel];
+    //networth
+    const selectedNetworth = networthSelect.value;
+    price *= config.networth[selectedNetworth];
+    //caste
+    const selectedCaste = casteSelect.value;
+    price += config.caste[selectedCaste];
+    //skills
+    const skillBonus = Array.from(skillsSelect)
+        .filter(skill => skill.checked)
+        .reduce((total, skill) => total + config.skills[skill.value], 0);
+    price += skillBonus;
+    //age
+    ageSelect.forEach(age => {
+        if (age.checked) {
+            price *= config.age[age.value];
+        }
+    });
+    //reputation
+    for (let i = 0; i < reputationSelect.length; i++) {
+        if (reputationSelect[i].checked) {
+            const selectedReputation = reputationSelect[i].value;
+            const reputationValue = config.reputation[selectedReputation];
+            price = reputationValue < 1 ? price * reputationValue : price + reputationValue;
+        }
+    }
+    //loveletter
+    const loveLetter = loveLetterInput.value;
+    let person = {
+        bride_name: name,
+        bride_price: price.toFixed(2),
+        letter_to_bride: loveLetter
+    };
+    //result
+    resultDiv.innerHTML = `
+        <p>Your price for ${person.bride_name} is $${person.bride_price}</p>
+        <p>Your love letter: ${person.letter_to_bride}</p>
+    `;
+};
